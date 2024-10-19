@@ -16,7 +16,7 @@ camera = Picamera2()
 
 controls = {
     "AeEnable": False,  # 禁用自动曝光
-    "AnalogueGain": 1.0,  # 增益控制
+    "AnalogueGain": 0.0,  # 增益控制
     "ExposureTime": 50000  # 曝光时间，单位微秒
 }
 camera.set_controls(controls)
