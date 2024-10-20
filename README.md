@@ -10,7 +10,7 @@
 
 - A Computer (PC or Mac, use the one you are familiar with)
 - A RPi (it could be replaced by anything on which you can control a cable's voltage level output, while the code also has to be changed slightly) connected to your computer through network, meanwhile get its ip address, as well as yor personal computer's (within the same LAN).
-- Some lead (wire, any conductor), conductive sucker (or any piece of conductor which could stick on your mobile phone screen), PC817 Photo-Coupler IC, a shell to assemble the above three(optional), electric resistance (≈500Ω), light-emitting diodes(optional, it just indicates the working status of touching system) 【x1 each per auto-touch-screen set (That's gotta be cooler)】
+- Some lead (wire, any conductor, I prefer dupont lines), conductive sucker (or any piece of conductor which could stick on your mobile phone screen), PC817 Photo-Coupler IC (to isolate microcurrents), a shell to assemble the above three(optional), electric resistance (≈500Ω), light-emitting diodes(optional, it just indicates the working status of touching system) **【x1 each per auto-touch-screen set (That's gotta be cooler)】**
 
 ### How Exact is it
 
@@ -35,6 +35,7 @@ See: [RPi-Controller Branch](https://github.com/HNRobert/Click-to-JumpaJump/tree
 ### Peripherals
 
 1. See [*Materials you need to achieve this*](#materials-you-need-to-achieve-this) #3
-2. Assemble them
-3. Connect them to your RPi GPIO port, remember its GPIO Number.
+2. Assemble them. Detailed tutorial of this part can be found: [Here(Text&Graphical)](https://binux.blog/2022/08/cat-planet-bot-part-1-touch-simulation/) and [Here(bilibili video version)](https://www.bilibili.com/video/BV1Fb4y1Q78Y/?spm_id_from=333.999.0.0&vd_source=4f4fb5cd7d568ce886720291334a16b1). That's also where I found this programme feasible and got the idea. Thanks to [Roy Binux](https://github.com/binux) and [小楼童鞋想睡觉](https://space.bilibili.com/287810776).
+3. Connect them to your RPi GPIO port, remember its GPIO Number. e.g. No.40 == GPIO 21.
+   ![GPIO-Map](https://github.com/user-attachments/assets/bd60bfb1-797d-4e6a-a306-01843e76cbc4)
 4. Stick the sucker on your mobile, make sure the mobile is placed at the center of your RPi's camera view.
