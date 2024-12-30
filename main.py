@@ -4,92 +4,88 @@ import numpy as np
 import struct
 import time
 
-# 常量定义
-CHUNK_SIZE = 1024  # 与发送端的块大小保持一致
+# Constants
+CHUNK_SIZE = 1024  # Keep consistent with sender's chunk size
 PORT = 5000
-BUFFER_SIZE = CHUNK_SIZE + 16  # 包括16字节的两个64位整数（头部信息）
-RECEIVE_TIMEOUT = 2  # 等待所有块到达的超时时间 (秒)
+BUFFER_SIZE = CHUNK_SIZE + 16  # Includes 16 bytes for two 64-bit integers (header information)
+RECEIVE_TIMEOUT = 2  # Timeout for waiting for all chunks to arrive (seconds)
 
-# 设置UDP套接字
+# Set up UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(('0.0.0.0', PORT))  # 绑定到任意IP地址，接收端口5000的数据
-sock.settimeout(RECEIVE_TIMEOUT)  # 设置接收超时
+sock.bind(('0.0.0.0', PORT))  # Bind to any IP address, receive data on port 5000
+sock.settimeout(RECEIVE_TIMEOUT)  # Set receive timeout
 
-# 用于发送点击坐标回服务端
+# Socket for sending click coordinates back to server
 send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('192.168.2.3', 5001)  # 替换为发送坐标的服务端 IP 和端口
+server_address = ('192.168.2.3', 5001)  # Replace with server IP and port for sending coordinates
 
-# 存储重组的图像数据
+# Store reassembled image data
 image_chunks = {}
-clicked_coords = None  # 用于存储鼠标点击的坐标
+clicked_coords = None  # Store mouse click coordinates
 
-# 鼠标回调函数
-
-
+# Mouse callback function
 def mark_point(event, x, y, flags, param):
     global clicked_coords
     if event == cv2.EVENT_LBUTTONDOWN:
-        # 记录点击的坐标
+        # Record clicked coordinates
         clicked_coords = (x, y)
         print(f"Mouse clicked at: {clicked_coords}")
 
-        # 将坐标打包成 UDP 数据并发送回服务端
-        data = struct.pack('ii', x, y)  # 打包为两个32位整数
+        # Pack coordinates into UDP data and send back to server
+        data = struct.pack('ii', x, y)  # Pack as two 32-bit integers
         send_sock.sendto(data, server_address)
-
 
 while True:
     try:
         while True:
-            # 接收UDP数据
+            # Receive UDP data
             data, addr = sock.recvfrom(BUFFER_SIZE)
 
-            # 提取头部信息：chunk编号和总chunk数
-            chunk_index = struct.unpack("Q", data[:8])[0]  # 前8字节是chunk编号
-            total_chunks = struct.unpack("Q", data[8:16])[0]  # 接下来8字节是总chunk数
+            # Extract header information: chunk index and total number of chunks
+            chunk_index = struct.unpack("Q", data[:8])[0]  # First 8 bytes are chunk index
+            total_chunks = struct.unpack("Q", data[8:16])[0]  # Next 8 bytes are total number of chunks
 
-            # 提取数据块
+            # Extract chunk data
             chunk_data = data[16:]
 
-            # 将数据块存储在字典中，以chunk_index为键
+            # Store chunk data in dictionary with chunk_index as key
             image_chunks[chunk_index] = chunk_data
 
-            # 检查是否所有块都接收到
+            # Check if all chunks have been received
             if len(image_chunks) == total_chunks:
                 break
 
     except socket.timeout:
         print("Timeout reached, missing chunks. Skipping this frame.")
-        image_chunks.clear()  # 清空数据，准备接收下一帧
+        image_chunks.clear()  # Clear data, prepare to receive next frame
         continue
 
-    # 重组所有块数据
+    # Reassemble all chunk data
     try:
-        full_image_data = b''.join([image_chunks[i]
-                                   for i in range(total_chunks)])
+        full_image_data = b''.join([image_chunks[i] for i in range(total_chunks)])
     except KeyError as e:
         print(f"Missing chunk: {e}. Skipping this frame.")
-        image_chunks.clear()  # 清空数据，准备接收下一帧
+        image_chunks.clear()  # Clear data, prepare to receive next frame
         continue
 
-    # 清空字典以便接收下一帧
+    # Clear dictionary to receive next frame
     image_chunks.clear()
 
-    # 使用OpenCV解码JPEG图像
+    # Decode JPEG image using OpenCV
     nparr = np.frombuffer(full_image_data, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    # 显示图像
+    # Display image
     cv2.imshow('Received Image', img)
 
-    # 设置鼠标点击回调
+    # Set mouse click callback
     cv2.setMouseCallback('Received Image', mark_point)
 
-    # 按下'q'键退出循环
+    # Press 'q' key to exit loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# 关闭窗口和套接字
+# Close windows and sockets
 cv2.destroyAllWindows()
 sock.close()
 send_sock.close()
